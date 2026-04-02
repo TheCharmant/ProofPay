@@ -1,0 +1,22 @@
+[package]
+name = "proofpay"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+soroban-sdk = { version = "20.5.0", default-features = false }
+
+[dev-dependencies]
+soroban-sdk = { version = "20.5.0", features = ["testutils"] }
+
+[lib]
+crate-type = ["cdylib", "rlib"]
+
+[profile.release]
+opt-level = "z"
+overflow-checks = true
+debug = 0
+strip = "symbols"
+lto = true
+panic = "abort"
+codegen-units = 1
