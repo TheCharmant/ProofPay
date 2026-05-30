@@ -1,0 +1,145 @@
+{% extends "base.html" %}
+
+{% block title %}Announcements - Admin - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Community Announcements</h1>
+        <p>Post announcements and updates for your community</p>
+    </div>
+
+    <div class="admin-section">
+        <button id="toggle-form" class="btn btn--primary" style="margin-bottom: 2rem;">+ Post Announcement</button>
+        
+        <div id="announcement-form-container" class="form-container" style="display: none;">
+            <h2>Create Announcement</h2>
+            <form method="POST" class="announcement-form">
+                <div class="form-group">
+                    <label for="title">Title *</label>
+                    <input type="text" id="title" name="title" required placeholder="e.g., Upcoming Cleanup Drive">
+                </div>
+
+                <div class="form-group">
+                    <label for="message">Message *</label>
+                    <textarea id="message" name="message" required placeholder="Your announcement message..." rows="5"></textarea>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary">Post Announcement</button>
+                    <button type="button" class="btn btn--secondary" onclick="toggleForm()">Cancel</button>
+                </div>
+            </form>
+        </div>
+
+        <div class="announcements-list">
+            <h2>Active Announcements</h2>
+            {% if announcements %}
+                <div style="display: grid; gap: 1.5rem;">
+                    {% for post in announcements %}
+                    <div class="announcement-card" style="border: 1px solid #ddd; padding: 1.5rem; border-radius: 8px; background-color: #f9f9f9;">
+                        <div style="display: flex; justify-content: space-between; align-items: start; margin-bottom: 1rem;">
+                            <div>
+                                <h3 style="margin: 0 0 0.5rem 0; font-size: 1.2rem;">{{ post.title }}</h3>
+                                <p style="margin: 0; color: #666; font-size: 0.9rem;">By {{ post.author }} on {{ post.created_at.strftime('%B %d, %Y') }}</p>
+                            </div>
+                            <span class="status-badge" style="background-color: {% if post.is_active %}#4CAF50{% else %}#999{% endif %}; color: white; padding: 0.25rem 0.75rem; border-radius: 20px; font-size: 0.85rem;">
+                                {% if post.is_active %}Active{% else %}Inactive{% endif %}
+                            </span>
+                        </div>
+                        <p class="announcement-message" style="margin: 1rem 0; color: #333; line-height: 1.6;">{{ (post.message or '')[:250] if post.message else 'No message' }}{% if post.message and post.message|length > 250 %}...{% endif %}</p>
+                        <div class="announcement-actions" style="display: flex; gap: 1rem; margin-top: 1rem; border-top: 1px solid #ddd; padding-top: 1rem;">
+                            <form method="POST" style="display: inline;">
+                                <input type="hidden" name="action" value="toggle">
+                                <input type="hidden" name="ann_id" value="{{ post.id }}">
+                                <button type="submit" class="btn-link">
+                                    {% if post.is_active %}Deactivate{% else %}Activate{% endif %}
+                                </button>
+                            </form>
+                            <form method="POST" style="display: inline;" onsubmit="return confirm('Delete this announcement?');">
+                                <input type="hidden" name="action" value="delete">
+                                <input type="hidden" name="ann_id" value="{{ post.id }}">
+                                <button type="submit" class="btn-link" style="color: #d32f2f;">Delete</button>
+                            </form>
+                        </div>
+                    </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <p style="text-align: center; color: #999; padding: 2rem;">No announcements yet. Create one to get started!</p>
+            {% endif %}
+        </div>
+    </div>
+</div>
+
+<style>
+.form-container {
+    background-color: #f5f5f5;
+    padding: 1.5rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input[type="text"],
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 4px;
+    font-family: inherit;
+    font-size: 1rem;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    justify-content: flex-end;
+}
+
+.btn-link {
+    background: none;
+    border: none;
+    color: #1976d2;
+    cursor: pointer;
+    text-decoration: underline;
+    font-size: 0.9rem;
+    padding: 0;
+}
+
+.btn-link:hover {
+    color: #1565c0;
+}
+
+.announcement-card:hover {
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+</style>
+
+<script>
+function toggleForm() {
+    const container = document.getElementById('announcement-form-container');
+    container.style.display = container.style.display === 'none' ? 'block' : 'none';
+    if (container.style.display === 'block') {
+        document.getElementById('title').focus();
+    }
+}
+
+document.getElementById('toggle-form').addEventListener('click', toggleForm);
+</script>
+{% endblock %}

@@ -1,0 +1,81 @@
+{% extends 'base.html' %}
+{% block title %}Search Reports{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-header__title">Search Reports</h1>
+    <p class="page-header__sub">Filter and find specific community reports</p>
+</div>
+
+<!-- Search Form -->
+<div class="card" style="margin-bottom:28px;">
+    <div style="padding:24px;">
+        <form method="GET" action="{{ url_for('admin_search') }}">
+            <div style="display:grid;grid-template-columns:1fr auto auto auto;gap:12px;align-items:end;flex-wrap:wrap;">
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Keyword</label>
+                    <input type="text" name="q" class="form-input" placeholder="Search title, location, reporter…" value="{{ query }}">
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Status</label>
+                    <select name="status" class="form-select">
+                        <option value="">Any</option>
+                        <option value="pending"     {{ 'selected' if status=='pending' }}>Pending</option>
+                        <option value="in_progress" {{ 'selected' if status=='in_progress' }}>In Progress</option>
+                        <option value="resolved"    {{ 'selected' if status=='resolved' }}>Resolved</option>
+                    </select>
+                </div>
+                <div class="form-group" style="margin:0;">
+                    <label class="form-label">Issue Type</label>
+                    <select name="issue_type" class="form-select">
+                        <option value="">Any</option>
+                        <option value="uncollected_garbage" {{ 'selected' if issue_type=='uncollected_garbage' }}>Uncollected Garbage</option>
+                        <option value="illegal_dumping"     {{ 'selected' if issue_type=='illegal_dumping' }}>Illegal Dumping</option>
+                        <option value="overflowing_bin"     {{ 'selected' if issue_type=='overflowing_bin' }}>Overflowing Bin</option>
+                        <option value="littering"           {{ 'selected' if issue_type=='littering' }}>Littering</option>
+                        <option value="other"               {{ 'selected' if issue_type=='other' }}>Other</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn btn--dark" style="height:46px;">Search</button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Results -->
+<div class="card">
+    <div class="card__header">
+        <span class="card__title">Results — {{ reports | length }} found</span>
+        <a href="{{ url_for('admin_dashboard') }}" class="btn btn--sm btn--outline" style="color:var(--green-dark);border-color:var(--tan);">← Dashboard</a>
+    </div>
+    <div class="card__body table-wrap">
+        {% if reports %}
+        <table>
+            <thead>
+                <tr><th>#</th><th>Title</th><th>Reporter</th><th>Type</th><th>Location</th><th>Status</th><th>Date</th><th>Action</th></tr>
+            </thead>
+            <tbody>
+                {% for r in reports %}
+                <tr>
+                    <td style="color:var(--text-light);font-size:.8rem;">{{ r.id }}</td>
+                    <td style="font-weight:600;">{{ r.title }}</td>
+                    <td>{{ r.reporter_name }}</td>
+                    <td><span class="issue-pill">{{ r.issue_type | replace('_',' ') | title }}</span></td>
+                    <td style="color:var(--text-light);font-size:.85rem;">{{ r.location }}</td>
+                    <td><span class="badge badge--{{ r.status }}">{{ r.status | replace('_',' ') | title }}</span></td>
+                    <td style="color:var(--text-light);font-size:.85rem;">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else '—' }}</td>
+                    <td><a href="{{ url_for('view_report', report_id=r.id) }}" class="btn btn--sm btn--outline" style="color:var(--green-dark);border-color:var(--tan);">Manage</a></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state__icon">🔍</div>
+            <h3 class="empty-state__title">No results found</h3>
+            <p class="empty-state__sub">Try adjusting your search filters</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

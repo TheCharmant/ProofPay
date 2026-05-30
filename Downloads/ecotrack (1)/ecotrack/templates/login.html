@@ -1,0 +1,40 @@
+{% extends 'base.html' %}
+{% block title %}Login{% endblock %}
+
+{% block full_content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container">
+    {% for category, message in messages %}
+    <div class="flash flash--{{ category }}"><span>{{ message }}</span><button onclick="this.parentElement.remove()">×</button></div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-card__logo">EcoTrack</div>
+        <p class="auth-card__sub">Sign in to your account</p>
+
+        <form method="POST" action="{{ url_for('login') }}">
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-input" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" placeholder="••••••••" required>
+            </div>
+            <button type="submit" class="btn btn--dark btn--full">Sign In →</button>
+        </form>
+
+        <p class="auth-card__footer">
+            Don't have an account? <a href="{{ url_for('register') }}">Register here</a>
+        </p>
+        <p class="auth-card__footer" style="margin-top:8px; font-size:.8rem; opacity:.6;">
+            Demo admin: admin@ecotrack.com / admin123
+        </p>
+    </div>
+</div>
+{% endblock %}

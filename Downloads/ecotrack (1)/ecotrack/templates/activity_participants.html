@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+{% block title %}Participants{% endblock %}
+{% block page_title %}Activity Participants{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:24px;">
+    <a href="{{ url_for('admin_activities') }}" style="color:var(--green-dark);text-decoration:none;font-weight:600;">Back to Activities</a>
+</div>
+
+<div class="page-header">
+    <h1 class="page-header__title">{{ activity.title }}</h1>
+    <p class="page-header__sub">{{ activity.activity_date.strftime('%B %d, %Y') if activity.activity_date else '' }} &middot; {{ activity.barangay or '' }} &middot; {{ activity.location }}</p>
+</div>
+
+<div class="card">
+    <div class="card__header">
+        <span class="card__title">Participants ({{ participants | length }})</span>
+    </div>
+    <div class="card__body table-wrap">
+        {% if participants %}
+        <table>
+            <thead>
+                <tr><th>Name</th><th>Email</th><th>Total Points</th><th>Joined At</th><th>Attended</th><th>Points Awarded</th></tr>
+            </thead>
+            <tbody>
+                {% for p in participants %}
+                <tr>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="mini-avatar">{{ p.name[0].upper() }}</div>
+                            <span style="font-weight:600;">{{ p.name }}</span>
+                        </div>
+                    </td>
+                    <td style="color:var(--text-light);">{{ p.email }}</td>
+                    <td style="font-weight:600;color:var(--green-dark);">{{ p.total_points }} pts</td>
+                    <td style="color:var(--text-light);font-size:.85rem;">{{ p.joined_at.strftime('%b %d, %Y') if p.joined_at else '—' }}</td>
+                    <td>
+                        {% if p.attended %}
+                        <span class="badge badge--resolved">Yes</span>
+                        {% else %}
+                        <span class="badge badge--pending">No</span>
+                        {% endif %}
+                    </td>
+                    <td style="font-weight:600;">{{ p.points_awarded or 0 }} pts</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <h3 class="empty-state__title">No participants yet</h3>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

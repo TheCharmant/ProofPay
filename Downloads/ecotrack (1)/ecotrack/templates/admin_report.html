@@ -1,0 +1,128 @@
+{% extends 'base.html' %}
+{% block title %}System Report{% endblock %}
+{% block page_title %}System Report{% endblock %}
+
+{% block content %}
+<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:32px;flex-wrap:wrap;gap:12px;">
+    <div>
+        <h1 class="page-header__title">System Report</h1>
+        <p class="page-header__sub">Generated on {{ generated_at }}</p>
+    </div>
+    <button onclick="window.print()" class="btn btn--dark">Print Report</button>
+</div>
+
+<div class="stats-grid" style="grid-template-columns:repeat(4,1fr);margin-bottom:28px;">
+    <div class="stat-card"><div><div class="stat-card__num">{{ total }}</div><div class="stat-card__label">Total Reports</div></div></div>
+    <div class="stat-card"><div><div class="stat-card__num" style="color:var(--warn)">{{ pending }}</div><div class="stat-card__label">Pending</div></div></div>
+    <div class="stat-card"><div><div class="stat-card__num" style="color:var(--info)">{{ in_progress }}</div><div class="stat-card__label">In Progress</div></div></div>
+    <div class="stat-card"><div><div class="stat-card__num" style="color:var(--green-dark)">{{ resolved }}</div><div class="stat-card__label">Resolved</div></div></div>
+</div>
+
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
+    <div class="card">
+        <div class="card__header"><span class="card__title">Reports by Barangay</span></div>
+        <div class="card__body table-wrap">
+            <table>
+                <thead><tr><th>Barangay</th><th>Reports</th></tr></thead>
+                <tbody>
+                    {% for row in by_barangay %}
+                    <tr>
+                        <td style="font-weight:600;">{{ row.barangay }}</td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <div style="height:8px;background:var(--green-mid);border-radius:4px;width:{{ [row.count * 10, 120] | min }}px;"></div>
+                                {{ row.count }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card__header"><span class="card__title">Reports by Issue Type</span></div>
+        <div class="card__body table-wrap">
+            <table>
+                <thead><tr><th>Issue Type</th><th>Count</th></tr></thead>
+                <tbody>
+                    {% for row in by_type %}
+                    <tr>
+                        <td>{{ row.issue_type | replace('_',' ') | title }}</td>
+                        <td>
+                            <div style="display:flex;align-items:center;gap:8px;">
+                                <div style="height:8px;background:var(--green-mid);border-radius:4px;width:{{ [row.count * 10, 120] | min }}px;"></div>
+                                {{ row.count }}
+                            </div>
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:28px;">
+    <div class="card__header"><span class="card__title">Top 10 Community Members by Points</span></div>
+    <div class="card__body table-wrap">
+        <table>
+            <thead><tr><th>Rank</th><th>Name</th><th>Email</th><th>Reports</th><th>Points</th></tr></thead>
+            <tbody>
+                {% for u in top_users %}
+                <tr>
+                    <td style="font-weight:700;color:var(--green-dark);">{{ loop.index }}</td>
+                    <td style="font-weight:600;">{{ u.name }}</td>
+                    <td style="color:var(--text-light);">{{ u.email }}</td>
+                    <td>{{ u.report_count }}</td>
+                    <td><span class="points-badge">{{ u.total_points }} pts</span></td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card" style="margin-bottom:28px;">
+    <div class="card__header"><span class="card__title">Recent Activities</span></div>
+    <div class="card__body table-wrap">
+        <table>
+            <thead><tr><th>Title</th><th>Date</th><th>Barangay</th><th>Status</th><th>Participants</th></tr></thead>
+            <tbody>
+                {% for a in recent_activities %}
+                <tr>
+                    <td style="font-weight:600;">{{ a.title }}</td>
+                    <td style="color:var(--text-light);">{{ a.activity_date.strftime('%b %d, %Y') if a.activity_date else '—' }}</td>
+                    <td>{{ a.barangay or '—' }}</td>
+                    <td><span class="badge badge--{{ a.status }}">{{ a.status | title }}</span></td>
+                    <td>{{ a.participant_count }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<div class="card">
+    <div class="card__header"><span class="card__title">Recent Reports (Last 20)</span></div>
+    <div class="card__body table-wrap">
+        <table>
+            <thead><tr><th>#</th><th>Title</th><th>Reporter</th><th>Barangay</th><th>Type</th><th>Status</th><th>Date</th></tr></thead>
+            <tbody>
+                {% for r in recent_reports %}
+                <tr>
+                    <td style="color:var(--text-light);font-size:.8rem;">{{ r.id }}</td>
+                    <td style="font-weight:600;">{{ r.title }}</td>
+                    <td>{{ r.reporter_name }}</td>
+                    <td>{{ r.barangay or '—' }}</td>
+                    <td><span class="issue-pill">{{ r.issue_type | replace('_',' ') | title }}</span></td>
+                    <td><span class="badge badge--{{ r.status }}">{{ r.status | replace('_',' ') | title }}</span></td>
+                    <td style="color:var(--text-light);font-size:.85rem;">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else '—' }}</td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
+{% endblock %}

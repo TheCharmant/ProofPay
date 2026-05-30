@@ -1,0 +1,60 @@
+{% extends 'base.html' %}
+{% block title %}Manage Users{% endblock %}
+{% block page_title %}Manage Users{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-header__title">Community Members</h1>
+    <p class="page-header__sub">Leaderboard ranked by points</p>
+</div>
+
+<div class="card">
+    <div class="card__header"><span class="card__title">Users ({{ users | length }})</span></div>
+    <div class="card__body table-wrap">
+        {% if users %}
+        <table>
+            <thead><tr><th>Rank</th><th>Name</th><th>Email</th><th>Role</th><th>Reports</th><th>Points</th><th>Give Points</th></tr></thead>
+            <tbody>
+                {% for u in users %}
+                <tr>
+                    <td style="font-weight:700;color:var(--green-dark);">
+                        {% if loop.index == 1 %}1st
+                        {% elif loop.index == 2 %}2nd
+                        {% elif loop.index == 3 %}3rd
+                        {% else %}{{ loop.index }}th{% endif %}
+                    </td>
+                    <td>
+                        <div style="display:flex;align-items:center;gap:10px;">
+                            <div class="mini-avatar">{{ u.name[0].upper() }}</div>
+                            <div>
+                                <div style="font-weight:600;">{{ u.name }}</div>
+                                {% if u.bio %}<div style="font-size:.78rem;color:var(--text-light);">{{ u.bio[:50] }}...</div>{% endif %}
+                            </div>
+                        </div>
+                    </td>
+                    <td style="color:var(--text-light);">{{ u.email }}</td>
+                    <td><span class="badge badge--{{ u.role }}">{{ u.role | title }}</span></td>
+                    <td style="font-weight:600;">{{ u.report_count }}</td>
+                    <td>
+                        <span class="points-badge" style="font-size:.9rem;padding:5px 14px;">{{ u.total_points or 0 }} pts</span>
+                    </td>
+                    <td>
+                        {% if u.role == 'user' %}
+                        <form method="POST" action="{{ url_for('give_points') }}" style="display:flex;gap:6px;align-items:center;">
+                            <input type="hidden" name="user_id" value="{{ u.id }}">
+                            <input type="number" name="points" class="form-input" style="width:70px;padding:6px;" placeholder="pts" min="1" required>
+                            <input type="text" name="reason" class="form-input" style="width:120px;padding:6px;" placeholder="Reason" required>
+                            <button type="submit" class="btn btn--sm btn--primary">Give</button>
+                        </form>
+                        {% endif %}
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state"><h3 class="empty-state__title">No users yet</h3></div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

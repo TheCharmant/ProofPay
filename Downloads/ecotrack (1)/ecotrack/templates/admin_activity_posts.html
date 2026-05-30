@@ -1,0 +1,403 @@
+{% extends "base.html" %}
+
+{% block title %}Community Activity Posts - Admin - EcoTrack{% endblock %}
+
+{% block content %}
+<div class="page-container">
+    <div class="page-header">
+        <h1>Community Activity Feed Management</h1>
+        <p>Post cleanup drives and environmental activities for your community</p>
+    </div>
+
+    <div class="admin-section">
+        <button id="toggle-form" class="btn btn--primary" style="margin-bottom: 2rem;">+ Post New Activity</button>
+        
+        <div id="activity-form-container" class="form-container" style="display: none;">
+            <h2>Create Activity Post</h2>
+            <form method="POST" enctype="multipart/form-data" class="activity-form">
+                <div class="form-group">
+                    <label for="title">Activity Title *</label>
+                    <input type="text" id="title" name="title" required placeholder="e.g., Barangay Cleanup Drive">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description *</label>
+                    <textarea id="description" name="description" required placeholder="Describe the activity, objectives, and what participants should bring..." rows="5"></textarea>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="barangay">Barangay *</label>
+                        <select id="barangay" name="barangay" required>
+                            <option value="">Select Barangay</option>
+                            {% for barangay in barangays %}
+                            <option value="{{ barangay }}">{{ barangay }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="location">Location/Venue *</label>
+                        <input type="text" id="location" name="location" required placeholder="Specific location in the barangay">
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="activity_type">Activity Type *</label>
+                        <select id="activity_type" name="activity_type" required>
+                            <option value="">Select Type</option>
+                            <option value="cleanup_drive">Cleanup Drive</option>
+                            <option value="environmental_education">Environmental Education</option>
+                            <option value="tree_planting">Tree Planting</option>
+                            <option value="other">Other</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="start_date">Start Date & Time *</label>
+                        <input type="datetime-local" id="start_date" name="start_date" required>
+                    </div>
+                </div>
+
+                <div class="form-row">
+                    <div class="form-group">
+                        <label for="activity_image">Activity Image</label>
+                        <input type="file" id="activity_image" name="activity_image" accept="image/*">
+                        <small>Recommended: 800x400px, max 5MB</small>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="status">Status *</label>
+                        <select id="status" name="status" required>
+                            <option value="upcoming">Upcoming</option>
+                            <option value="ongoing">Ongoing</option>
+                            <option value="completed">Completed</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="form-actions">
+                    <button type="submit" class="btn btn--primary">Post Activity</button>
+                    <button type="button" id="cancel-form" class="btn btn--secondary">Cancel</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="posts-section" style="margin-top: 3rem;">
+        <h2>Posted Activities</h2>
+        
+        {% if posts %}
+        <div class="posts-grid">
+            {% for post in posts %}
+            <div class="post-card">
+                {% if post.image_url %}
+                <div class="post-image">
+                    <img src="{{ post.image_url }}" alt="{{ post.title }}">
+                </div>
+                {% else %}
+                <div class="post-image" style="background-color: #e8f5e9; display: flex; align-items: center; justify-content: center;">
+                    <span style="font-size: 3em; color: #4caf50;">+</span>
+                </div>
+                {% endif %}
+                
+                <div class="post-card-body">
+                    <div class="post-header">
+                        <h3>{{ post.title }}</h3>
+                        <span class="status-badge status-badge--{{ post.status }}">
+                            {{ post.status|capitalize }}
+                        </span>
+                    </div>
+
+                    <p class="post-description">{{ (post.description or '')[:100] if post.description else 'No description' }}{% if post.description and post.description|length > 100 %}...{% endif %}</p>
+
+                    <div class="post-meta">
+                        <div><strong>Barangay:</strong> {{ post.barangay }}</div>
+                        <div><strong>Location:</strong> {{ post.location }}</div>
+                        <div><strong>Type:</strong> {{ post.activity_type|replace('_', ' ')|title }}</div>
+                        <div><strong>Date:</strong> {{ post.start_date.strftime('%B %d, %Y') if post.start_date else 'TBD' }}</div>
+                        <div><strong>Participants:</strong> <span class="participant-count">{{ post.participant_count|default(0) }}</span></div>
+                    </div>
+
+                    <div class="post-actions">
+                        <a href="{{ url_for('view_activity_participants', activity_id=post.id) }}" class="btn-link">View Participants</a>
+                        <a href="#" class="btn-link" onclick="alert('Edit feature coming soon');">Edit</a>
+                    </div>
+                </div>
+            </div>
+            {% endfor %}
+        </div>
+        {% else %}
+        <div class="empty-state">
+            <p>No activities posted yet. Create your first community activity post above.</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+
+<style>
+.page-container {
+    max-width: 1200px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+.page-header {
+    background: linear-gradient(135deg, #4caf50 0%, #388e3c 100%);
+    color: white;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-bottom: 2rem;
+}
+
+.page-header h1 {
+    margin: 0;
+    font-size: 2rem;
+}
+
+.page-header p {
+    margin: 0.5rem 0 0 0;
+    opacity: 0.9;
+}
+
+.admin-section {
+    background: white;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.form-container {
+    background: #f9f9f9;
+    padding: 2rem;
+    border-radius: 8px;
+    margin-top: 1rem;
+}
+
+.form-container h2 {
+    margin-top: 0;
+    color: #333;
+}
+
+.form-group {
+    margin-bottom: 1.5rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+    color: #333;
+}
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ddd;
+    border-radius: 6px;
+    font-size: 1rem;
+    font-family: inherit;
+}
+
+.form-group textarea {
+    resize: vertical;
+}
+
+.form-group small {
+    display: block;
+    margin-top: 0.25rem;
+    color: #999;
+}
+
+.form-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1rem;
+}
+
+.form-actions {
+    display: flex;
+    gap: 1rem;
+    margin-top: 2rem;
+}
+
+.btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 6px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.3s;
+    font-size: 1rem;
+}
+
+.btn--primary {
+    background-color: #4caf50;
+    color: white;
+}
+
+.btn--primary:hover {
+    background-color: #388e3c;
+}
+
+.btn--secondary {
+    background-color: #f0f0f0;
+    color: #333;
+}
+
+.btn--secondary:hover {
+    background-color: #ddd;
+}
+
+.posts-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 2rem;
+    margin-top: 1rem;
+}
+
+.post-card {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+}
+
+.post-image {
+    width: 100%;
+    height: 150px;
+    overflow: hidden;
+}
+
+.post-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+.post-card-body {
+    padding: 1.5rem;
+}
+
+.post-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: start;
+    gap: 1rem;
+    margin-bottom: 1rem;
+}
+
+.post-header h3 {
+    margin: 0;
+    font-size: 1.2rem;
+    color: #333;
+    flex: 1;
+}
+
+.status-badge {
+    padding: 0.3rem 0.8rem;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    white-space: nowrap;
+}
+
+.status-badge--upcoming {
+    background-color: #e3f2fd;
+    color: #1565c0;
+}
+
+.status-badge--ongoing {
+    background-color: #fff3cd;
+    color: #856404;
+}
+
+.status-badge--completed {
+    background-color: #c8e6c9;
+    color: #2e7d32;
+}
+
+.post-description {
+    color: #666;
+    margin: 0 0 1rem 0;
+    font-size: 0.9rem;
+}
+
+.post-meta {
+    background: #f9f9f9;
+    padding: 1rem;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    margin-bottom: 1rem;
+}
+
+.post-meta div {
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.post-meta strong {
+    color: #333;
+}
+
+.participant-count {
+    background: #4caf50;
+    color: white;
+    padding: 0.2rem 0.6rem;
+    border-radius: 4px;
+    font-weight: 600;
+}
+
+.post-actions {
+    display: flex;
+    gap: 1rem;
+}
+
+.btn-link {
+    color: #2196f3;
+    text-decoration: none;
+    font-weight: 600;
+    cursor: pointer;
+    transition: color 0.3s;
+}
+
+.btn-link:hover {
+    color: #1565c0;
+    text-decoration: underline;
+}
+
+.empty-state {
+    text-align: center;
+    padding: 2rem;
+    color: #666;
+    background: #f9f9f9;
+    border-radius: 6px;
+}
+
+@media (max-width: 768px) {
+    .form-row {
+        grid-template-columns: 1fr;
+    }
+    
+    .posts-grid {
+        grid-template-columns: 1fr;
+    }
+}
+</style>
+
+<script>
+document.getElementById('toggle-form').addEventListener('click', function() {
+    const container = document.getElementById('activity-form-container');
+    container.style.display = container.style.display === 'none' ? 'block' : 'none';
+});
+
+document.getElementById('cancel-form').addEventListener('click', function() {
+    document.getElementById('activity-form-container').style.display = 'none';
+    document.querySelector('.activity-form').reset();
+});
+</script>
+{% endblock %}

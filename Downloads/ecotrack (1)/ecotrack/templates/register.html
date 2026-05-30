@@ -1,0 +1,41 @@
+{% extends 'base.html' %}
+{% block title %}Register{% endblock %}
+
+{% block full_content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container">
+    {% for category, message in messages %}
+    <div class="flash flash--{{ category }}"><span>{{ message }}</span><button onclick="this.parentElement.remove()">×</button></div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<div class="auth-page">
+    <div class="auth-card">
+        <div class="auth-card__logo">🌿 EcoTrack</div>
+        <p class="auth-card__sub">Create your community account</p>
+
+        <form method="POST" action="{{ url_for('register') }}">
+            <div class="form-group">
+                <label class="form-label">Full Name</label>
+                <input type="text" name="name" class="form-input" placeholder="Juan dela Cruz" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Email Address</label>
+                <input type="email" name="email" class="form-input" placeholder="you@example.com" required>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Password</label>
+                <input type="password" name="password" class="form-input" placeholder="Min. 6 characters" minlength="6" required>
+            </div>
+            <button type="submit" class="btn btn--dark btn--full">Create Account →</button>
+        </form>
+
+        <p class="auth-card__footer">
+            Already have an account? <a href="{{ url_for('login') }}">Sign in</a>
+        </p>
+    </div>
+</div>
+{% endblock %}

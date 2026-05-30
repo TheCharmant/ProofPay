@@ -1,0 +1,59 @@
+{% extends 'base.html' %}
+{% block title %}Activity Feed{% endblock %}
+{% block page_title %}Activity Feed{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-header__title">Community Activities</h1>
+    <p class="page-header__sub">Join clean-up drives and community activities to earn points</p>
+</div>
+
+{% if activities %}
+<div class="activity-grid">
+    {% for a in activities %}
+    <div class="activity-card">
+        {% if a.image_path %}
+        <div class="activity-card__image">
+            <img src="{{ url_for('static', filename='uploads/' + a.image_path) }}" alt="{{ a.title }}">
+        </div>
+        {% else %}
+        <div class="activity-card__image activity-card__image--placeholder">
+            <span>Community Activity</span>
+        </div>
+        {% endif %}
+        <div class="activity-card__body">
+            <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap;">
+                <span class="badge badge--{{ a.status }}">{{ a.status | title }}</span>
+                <span class="issue-pill">{{ a.barangay or 'All Barangays' }}</span>
+                <span class="points-badge">+{{ a.points_reward }} pts</span>
+            </div>
+            <h3 class="activity-card__title">{{ a.title }}</h3>
+            <p class="activity-card__desc">{{ a.description }}</p>
+            <div class="activity-card__meta">
+                <span>{{ a.activity_date.strftime('%B %d, %Y') if a.activity_date else '—' }}</span>
+                {% if a.activity_time %}<span>{{ a.activity_time }}</span>{% endif %}
+                <span>{{ a.location }}</span>
+            </div>
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;">
+                <span style="font-size:.85rem;color:var(--text-light);">{{ a.participant_count }} joined</span>
+                {% if a.status == 'upcoming' or a.status == 'ongoing' %}
+                <form method="POST" action="{{ url_for('join_activity', activity_id=a.id) }}">
+                    <button type="submit" class="btn btn--sm {% if a.joined %}btn--danger{% else %}btn--dark{% endif %}">
+                        {{ 'Leave' if a.joined else 'Join Activity' }}
+                    </button>
+                </form>
+                {% else %}
+                <span class="badge badge--user">Completed</span>
+                {% endif %}
+            </div>
+        </div>
+    </div>
+    {% endfor %}
+</div>
+{% else %}
+<div class="empty-state">
+    <h3 class="empty-state__title">No activities posted yet</h3>
+    <p class="empty-state__sub">Check back soon for upcoming community activities</p>
+</div>
+{% endif %}
+{% endblock %}

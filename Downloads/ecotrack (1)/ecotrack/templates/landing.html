@@ -1,0 +1,73 @@
+{% extends 'base.html' %}
+{% block title %}EcoTrack{% endblock %}
+{% block body_class %}landing-body{% endblock %}
+
+{% block full_content %}
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container">
+    {% for category, message in messages %}
+    <div class="flash flash--{{ category }}"><span>{{ message }}</span><button onclick="this.parentElement.remove()">×</button></div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+<nav class="navbar">
+    <a href="{{ url_for('index') }}" class="navbar__logo"><span class="navbar__leaf">EcoTrack</span></a>
+    <div class="navbar__links">
+        <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+        <a href="{{ url_for('register') }}" class="nav-link nav-link--cta">Get Started</a>
+    </div>
+</nav>
+
+<section class="hero">
+    <p class="hero__eyebrow">Community Waste Reporting System</p>
+    <h1 class="hero__title">Report Waste Issues,<br><em>Build Cleaner Cities</em></h1>
+    <p class="hero__sub">EcoTrack empowers community members to report uncollected garbage, illegal dumping, and overflowing bins — together we create cleaner surroundings.</p>
+    <div class="hero__actions">
+        <a href="{{ url_for('register') }}" class="btn btn--primary">Start Reporting</a>
+        <a href="{{ url_for('login') }}" class="btn btn--outline">Sign In</a>
+    </div>
+</section>
+
+<section class="features">
+    <p class="features__title">How EcoTrack Works</p>
+    <p class="features__sub">Simple, transparent, and community-driven waste management</p>
+    <div class="features__grid">
+        <div class="feature-card">
+            <span class="feature-card__icon">📝</span>
+            <h3 class="feature-card__title">Submit a Report</h3>
+            <p class="feature-card__desc">Report waste issues with a description and location in just a few clicks.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-card__icon">📍</span>
+            <h3 class="feature-card__title">Track Your Reports</h3>
+            <p class="feature-card__desc">Monitor the status of your submissions — pending, in progress, or resolved.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-card__icon">⚡</span>
+            <h3 class="feature-card__title">Admin Response</h3>
+            <p class="feature-card__desc">Local administrators review, prioritize, and update all community reports.</p>
+        </div>
+        <div class="feature-card">
+            <span class="feature-card__icon">🌍</span>
+            <h3 class="feature-card__title">Community Impact</h3>
+            <p class="feature-card__desc">Every report contributes to a cleaner, more sustainable environment for all.</p>
+        </div>
+    </div>
+</section>
+
+<section class="sdg-banner">
+    <h2 class="sdg-banner__title">Supporting the UN Sustainable Development Goals</h2>
+    <div class="sdg-tags">
+        <span class="sdg-tag">🏙️ SDG 11 — Sustainable Cities &amp; Communities</span>
+        <span class="sdg-tag">♻️ SDG 12 — Responsible Consumption &amp; Production</span>
+        <span class="sdg-tag">🌱 SDG 13 — Climate Action</span>
+    </div>
+</section>
+
+<footer class="footer">
+    <p>EcoTrack &copy; 2024 · CSC 221 Project · Beltran, Phenylope Vianca C.</p>
+</footer>
+{% endblock %}

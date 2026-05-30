@@ -1,0 +1,83 @@
+{% extends 'base.html' %}
+{% block title %}New Report{% endblock %}
+{% block page_title %}New Report{% endblock %}
+
+{% block content %}
+<div style="max-width:680px;margin:0 auto;">
+    <div class="page-header">
+        <h1 class="page-header__title">Submit a Waste Report</h1>
+        <p class="page-header__sub">Help keep our community clean. You will earn 5 points for submitting a report.</p>
+    </div>
+    <div class="card">
+        <div class="card__header"><span class="card__title">Report Details</span></div>
+        <div style="padding:32px;">
+            <form method="POST" action="{{ url_for('new_report') }}" enctype="multipart/form-data">
+                <div class="form-group">
+                    <label class="form-label">Report Title *</label>
+                    <input type="text" name="title" class="form-input" placeholder="e.g. Overflowing bin near the market" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Issue Type *</label>
+                    <select name="issue_type" class="form-select" required>
+                        <option value="" disabled selected>Select issue type...</option>
+                        <option value="uncollected_garbage">Uncollected Garbage</option>
+                        <option value="illegal_dumping">Illegal Dumping</option>
+                        <option value="overflowing_bin">Overflowing Bin</option>
+                        <option value="littering">Littering</option>
+                        <option value="other">Other</option>
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Barangay *</label>
+                    <select name="barangay" class="form-select" required>
+                        <option value="" disabled selected>Select barangay...</option>
+                        {% for b in barangays %}
+                        <option value="{{ b }}">{{ b }}</option>
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Street / Exact Location</label>
+                    <input type="text" name="street" class="form-input" placeholder="e.g. Corner of Rizal Ave and Magsaysay Dr, near the sari-sari store">
+                    <small style="color:var(--text-light);font-size:.8rem;margin-top:4px;display:block;">Provide the street name or any landmark to help pinpoint the location.</small>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Description *</label>
+                    <textarea name="description" class="form-textarea" placeholder="Describe the waste issue in detail. How severe is it? How long has it been there?" required></textarea>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Photo Evidence</label>
+                    <div class="file-upload-area" onclick="document.getElementById('report-image').click()">
+                        <div class="file-upload-area__icon">[ IMAGE ]</div>
+                        <p class="file-upload-area__text">Click to upload a photo of the issue</p>
+                        <p style="font-size:.8rem;color:var(--text-light);">JPG, PNG, GIF up to 10MB</p>
+                        <input type="file" id="report-image" name="image" accept="image/*" style="display:none;" onchange="previewImage(this)">
+                    </div>
+                    <div id="image-preview" style="display:none;margin-top:12px;">
+                        <img id="preview-img" style="max-width:100%;border-radius:8px;border:2px solid var(--tan);">
+                    </div>
+                </div>
+                <div style="display:flex;gap:12px;flex-wrap:wrap;">
+                    <button type="submit" class="btn btn--dark">Submit Report</button>
+                    <a href="{{ url_for('user_dashboard') }}" class="btn btn--outline">Cancel</a>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+function previewImage(input) {
+    if (input.files && input.files[0]) {
+        const reader = new FileReader();
+        reader.onload = e => {
+            document.getElementById('preview-img').src = e.target.result;
+            document.getElementById('image-preview').style.display = 'block';
+        };
+        reader.readAsDataURL(input.files[0]);
+    }
+}
+</script>
+{% endblock %}

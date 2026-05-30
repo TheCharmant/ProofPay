@@ -1,0 +1,101 @@
+{% extends 'base.html' %}
+{% block title %}My Profile{% endblock %}
+{% block page_title %}My Profile{% endblock %}
+
+{% block content %}
+<div style="max-width:800px;margin:0 auto;">
+    <div class="profile-hero">
+        <div class="profile-hero__avatar">{{ user.name[0].upper() }}</div>
+        <div class="profile-hero__info">
+            <h1 class="profile-hero__name">{{ user.name }}</h1>
+            <span class="badge badge--{{ user.role }}">{{ user.role | title }}</span>
+            <p class="profile-hero__email">{{ user.email }}</p>
+            <p class="profile-hero__joined">Member since {{ user.created_at.strftime('%B %d, %Y') if user.created_at else '—' }}</p>
+            <div style="margin-top:12px;">
+                <span class="points-badge" style="font-size:1rem;padding:6px 18px;">{{ user.total_points or 0 }} Points</span>
+            </div>
+            {% if user.bio %}
+            <p class="profile-hero__bio">{{ user.bio }}</p>
+            {% else %}
+            <p class="profile-hero__bio" style="opacity:.5;font-style:italic;">No bio added yet.</p>
+            {% endif %}
+        </div>
+    </div>
+
+    <div class="stats-grid" style="margin-bottom:28px;">
+        <div class="stat-card">
+            <div><div class="stat-card__num">{{ report_count }}</div><div class="stat-card__label">Total Reports</div></div>
+        </div>
+        <div class="stat-card">
+            <div><div class="stat-card__num">{{ pending_count }}</div><div class="stat-card__label">Pending</div></div>
+        </div>
+        <div class="stat-card">
+            <div><div class="stat-card__num">{{ resolved_count }}</div><div class="stat-card__label">Resolved</div></div>
+        </div>
+    </div>
+
+    {% if recent_points %}
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card__header"><span class="card__title">Recent Points Earned</span></div>
+        <div class="card__body table-wrap">
+            <table>
+                <thead><tr><th>Points</th><th>Reason</th><th>Date</th></tr></thead>
+                <tbody>
+                    {% for p in recent_points %}
+                    <tr>
+                        <td><span class="points-badge">+{{ p.points }}</span></td>
+                        <td>{{ p.reason }}</td>
+                        <td style="color:var(--text-light);font-size:.85rem;">{{ p.created_at.strftime('%b %d, %Y') if p.created_at else '—' }}</td>
+                    </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+    {% endif %}
+
+    <div class="card" style="margin-bottom:24px;">
+        <div class="card__header"><span class="card__title">Edit Profile</span></div>
+        <div style="padding:32px;">
+            <form method="POST" action="{{ url_for('profile') }}">
+                <input type="hidden" name="action" value="update_profile">
+                <div class="form-group">
+                    <label class="form-label">Full Name</label>
+                    <input type="text" name="name" class="form-input" value="{{ user.name }}" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Email Address</label>
+                    <input type="email" class="form-input" value="{{ user.email }}" disabled style="opacity:.6;cursor:not-allowed;">
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Bio</label>
+                    <textarea name="bio" class="form-textarea" style="min-height:80px;" placeholder="Tell the community about yourself...">{{ user.bio or '' }}</textarea>
+                </div>
+                <button type="submit" class="btn btn--dark">Save Changes</button>
+            </form>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card__header"><span class="card__title">Change Password</span></div>
+        <div style="padding:32px;">
+            <form method="POST" action="{{ url_for('profile') }}">
+                <input type="hidden" name="action" value="change_password">
+                <div class="form-group">
+                    <label class="form-label">Current Password</label>
+                    <input type="password" name="current_password" class="form-input" placeholder="........" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">New Password</label>
+                    <input type="password" name="new_password" class="form-input" placeholder="Min. 6 characters" minlength="6" required>
+                </div>
+                <div class="form-group">
+                    <label class="form-label">Confirm New Password</label>
+                    <input type="password" name="confirm_password" class="form-input" placeholder="Re-enter new password" required>
+                </div>
+                <button type="submit" class="btn btn--dark">Update Password</button>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

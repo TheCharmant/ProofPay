@@ -1,0 +1,156 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+
+{% block extra_head %}
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+{% endblock %}
+
+{% block content %}
+<div class="page-header">
+    <h1 class="page-header__title">Admin Dashboard</h1>
+    <p class="page-header__sub">Manage and track all community waste reports</p>
+</div>
+
+<!-- Stats -->
+<div class="stats-grid" style="grid-template-columns:repeat(5,1fr);">
+    <div class="stat-card">
+        <span class="stat-card__icon"></span>
+        <div><div class="stat-card__num">{{ total }}</div><div class="stat-card__label">Total</div></div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-card__icon"></span>
+        <div><div class="stat-card__num" style="color:var(--warn)">{{ pending }}</div><div class="stat-card__label">Pending</div></div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-card__icon"></span>
+        <div><div class="stat-card__num" style="color:var(--info)">{{ in_progress }}</div><div class="stat-card__label">In Progress</div></div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-card__icon"></span>
+        <div><div class="stat-card__num" style="color:var(--green-dark)">{{ resolved }}</div><div class="stat-card__label">Resolved</div></div>
+    </div>
+    <div class="stat-card">
+        <span class="stat-card__icon"></span>
+        <div><div class="stat-card__num">{{ users_count }}</div><div class="stat-card__label">Users</div></div>
+    </div>
+</div>
+
+<!-- Charts -->
+<div style="display:grid;grid-template-columns:1fr 1fr;gap:24px;margin-bottom:28px;">
+    <div class="card">
+        <div class="card__header"><span class="card__title">Reports by Status</span></div>
+        <div style="padding:24px;height:220px;display:flex;align-items:center;justify-content:center;">
+            <canvas id="statusChart"></canvas>
+        </div>
+    </div>
+    <div class="card">
+        <div class="card__header"><span class="card__title">Reports by Issue Type</span></div>
+        <div style="padding:24px;height:220px;display:flex;align-items:center;justify-content:center;">
+            <canvas id="typeChart"></canvas>
+        </div>
+    </div>
+</div>
+
+<!-- Filter + Table -->
+<div class="card">
+    <div class="card__header">
+        <span class="card__title">All Reports</span>
+        <div style="display:flex;gap:8px;align-items:center;">
+            <select id="statusFilter" class="form-select" style="padding:6px 12px;font-size:.85rem;width:auto;">
+                <option value="">All Statuses</option>
+                <option value="pending">Pending</option>
+                <option value="in_progress">In Progress</option>
+                <option value="resolved">Resolved</option>
+            </select>
+            <div style="display: flex; gap: 8px;">
+                <a href="{{ url_for('generate_report', type='summary') }}" class="btn btn--sm btn--primary" title="Export all reports">Export Summary</a>
+                <a href="{{ url_for('admin_users') }}" class="btn btn--sm btn--primary">Manage Users</a>
+                <a href="{{ url_for('admin_activities') }}" class="btn btn--sm btn--primary">Manage Activities</a>
+            </div>
+        </div>
+    </div>
+    <div class="card__body table-wrap">
+        {% if reports %}
+        <table id="reportsTable">
+            <thead>
+                <tr>
+                    <th>#</th>
+                    <th>Title</th>
+                    <th>Reporter</th>
+                    <th>Type</th>
+                    <th>Location</th>
+                    <th>Status</th>
+                    <th>Date</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for r in reports %}
+                <tr data-status="{{ r.status }}">
+                    <td style="color:var(--text-light);font-size:.8rem;">{{ r.id }}</td>
+                    <td style="font-weight:600;max-width:200px;">{{ r.title }}</td>
+                    <td>{{ r.reporter_name }}</td>
+                    <td><span class="issue-pill">{{ r.issue_type | replace('_', ' ') | title }}</span></td>
+                    <td style="color:var(--text-light);max-width:160px;font-size:.85rem;">{{ r.location }}</td>
+                    <td><span class="badge badge--{{ r.status }}">{{ r.status | replace('_', ' ') | title }}</span></td>
+                    <td style="color:var(--text-light);font-size:.85rem;">{{ r.created_at.strftime('%b %d, %Y') if r.created_at else '—' }}</td>
+                    <td>
+                        <a href="{{ url_for('view_report', report_id=r.id) }}" class="btn btn--sm btn--outline" style="color:var(--green-dark);border-color:var(--tan);">Manage</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+        {% else %}
+        <div class="empty-state">
+            <div class="empty-state__icon"></div>
+            <h3 class="empty-state__title">No reports yet</h3>
+            <p class="empty-state__sub">Reports from community members will appear here</p>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_scripts %}
+<script>
+// Filter table
+document.getElementById('statusFilter').addEventListener('change', function() {
+    const val = this.value;
+    document.querySelectorAll('#reportsTable tbody tr').forEach(row => {
+        row.style.display = (!val || row.dataset.status === val) ? '' : 'none';
+    });
+});
+
+// Fetch stats for charts
+fetch('/api/stats').then(r => r.json()).then(data => {
+    const colors = ['#546B41','#8FAF7E','#D4C9A8','#B8CCA8','#FAF9F0'];
+
+    // Status chart
+    const byStatus = data.by_status || [];
+    new Chart(document.getElementById('statusChart'), {
+        type: 'doughnut',
+        data: {
+            labels: byStatus.map(d => d.status.replace('_',' ')),
+            datasets: [{ data: byStatus.map(d => d.count), backgroundColor: colors, borderWidth: 2, borderColor: '#FAF9F0' }]
+        },
+        options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { position: 'right', labels: { font: { family: 'DM Sans' }, boxWidth: 14 } } } }
+    });
+
+    // Type chart
+    const byType = data.by_type || [];
+    new Chart(document.getElementById('typeChart'), {
+        type: 'bar',
+        data: {
+            labels: byType.map(d => d.issue_type.replace(/_/g,' ')),
+            datasets: [{ data: byType.map(d => d.count), backgroundColor: '#8FAF7E', borderRadius: 6 }]
+        },
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { display: false } },
+            scales: { y: { beginAtZero: true, ticks: { stepSize: 1 } }, x: { ticks: { font: { size: 11 } } } }
+        }
+    });
+}).catch(() => {});
+</script>
+{% endblock %}

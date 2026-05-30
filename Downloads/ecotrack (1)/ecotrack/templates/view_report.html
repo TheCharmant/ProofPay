@@ -1,0 +1,179 @@
+{% extends 'base.html' %}
+{% block title %}Report #{{ report.id }}{% endblock %}
+{% block page_title %}Report #{{ report.id }}{% endblock %}
+
+{% block content %}
+<div style="margin-bottom:24px;">
+    <a href="{{ url_for('admin_dashboard') if session.role=='admin' else url_for('user_dashboard') }}"
+       style="color:var(--green-dark);text-decoration:none;font-weight:600;font-size:.9rem;">Back</a>
+</div>
+
+<div class="page-header">
+    <h1 class="page-header__title">{{ report.title }}</h1>
+    <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-top:8px;">
+        <span class="badge badge--{{ report.status }}">{{ report.status | replace('_',' ') | title }}</span>
+        <span class="issue-pill">{{ report.issue_type | replace('_',' ') | title }}</span>
+        <span style="color:var(--text-light);font-size:.85rem;">Report #{{ report.id }}</span>
+    </div>
+</div>
+
+<div class="report-detail">
+    <div>
+        <div class="card">
+            <div class="card__header"><span class="card__title">Report Information</span></div>
+            <div style="padding:28px;">
+                <div class="detail-section">
+                    <div class="detail-label">Barangay</div>
+                    <div class="detail-value" style="font-weight:600;">{{ report.barangay or '—' }}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Street / Location</div>
+                    <div class="detail-value">{{ report.street or report.location or '—' }}</div>
+                </div>
+                <div class="detail-section">
+                    <div class="detail-label">Description</div>
+                    <div class="detail-value">{{ report.description }}</div>
+                </div>
+                {% if report.image_path %}
+                <div class="detail-section">
+                    <div class="detail-label">Photo Evidence</div>
+                    <img src="{{ url_for('static', filename='uploads/' + report.image_path) }}"
+                         style="max-width:100%;border-radius:8px;border:2px solid var(--tan);margin-top:8px;">
+                </div>
+                {% endif %}
+                <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-top:20px;">
+                    <div>
+                        <div class="detail-label">Reported By</div>
+                        <div class="detail-value">{{ report.reporter_name }}</div>
+                    </div>
+                    <div>
+                        <div class="detail-label">Date Submitted</div>
+                        <div class="detail-value">{{ report.created_at.strftime('%B %d, %Y') if report.created_at else '—' }}</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        {% if report.admin_notes %}
+        <div class="card" style="border-color:var(--green-mid);">
+            <div class="card__header"><span class="card__title">Admin Notes</span></div>
+            <div style="padding:24px;"><p style="line-height:1.7;">{{ report.admin_notes }}</p></div>
+        </div>
+        {% endif %}
+
+        {% if resolution_images %}
+        <div class="card">
+            <div class="card__header"><span class="card__title">Resolution Photos</span></div>
+            <div style="padding:24px;display:grid;grid-template-columns:repeat(auto-fill,minmax(200px,1fr));gap:12px;">
+                {% for img in resolution_images %}
+                <img src="{{ url_for('static', filename='uploads/' + img.image_path) }}"
+                     style="width:100%;border-radius:8px;border:2px solid var(--tan);">
+                {% endfor %}
+            </div>
+        </div>
+        {% endif %}
+
+        <div class="card">
+            <div class="card__header"><span class="card__title">Comments ({{ comments | length }})</span></div>
+            <div style="padding:24px;">
+                {% if comments %}
+                <div style="display:flex;flex-direction:column;gap:16px;margin-bottom:24px;">
+                    {% for c in comments %}
+                    <div class="comment-bubble {% if c.commenter_role=='admin' %}comment-bubble--admin{% endif %}">
+                        <div class="comment-bubble__header">
+                            <div class="mini-avatar">{{ c.commenter_name[0].upper() }}</div>
+                            <div>
+                                <span class="comment-bubble__name">{{ c.commenter_name }}</span>
+                                {% if c.commenter_role=='admin' %}
+                                <span class="badge badge--admin" style="font-size:.65rem;padding:2px 8px;margin-left:6px;">Admin</span>
+                                {% endif %}
+                                <div class="comment-bubble__time">{{ c.created_at.strftime('%b %d, %Y at %I:%M %p') if c.created_at else '' }}</div>
+                            </div>
+                        </div>
+                        <p class="comment-bubble__msg">{{ c.message }}</p>
+                    </div>
+                    {% endfor %}
+                </div>
+                {% else %}
+                <p style="color:var(--text-light);font-size:.9rem;margin-bottom:20px;">No comments yet.</p>
+                {% endif %}
+                <form method="POST" action="{{ url_for('add_comment', report_id=report.id) }}">
+                    <div class="form-group" style="margin-bottom:12px;">
+                        <textarea name="message" class="form-textarea" style="min-height:80px;" placeholder="Add a comment..." required></textarea>
+                    </div>
+                    <button type="submit" class="btn btn--dark btn--sm">Post Comment</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div>
+        {% if session.role=='admin' or report.user_id==session.user_id %}
+        <div class="card" style="margin-bottom:20px;border-color:#f0d0cc;">
+            <div style="padding:20px;">
+                <p style="font-size:.85rem;color:var(--text-light);margin-bottom:14px;">Permanently remove this report.</p>
+                <form method="POST" action="{{ url_for('delete_report', report_id=report.id) }}" onsubmit="return confirm('Delete this report?');">
+                    <button type="submit" class="btn btn--danger btn--sm btn--full">Delete Report</button>
+                </form>
+            </div>
+        </div>
+        {% endif %}
+
+        {% if session.role=='admin' %}
+        <div class="card" style="margin-bottom:20px;">
+            <div class="card__header"><span class="card__title">Update Report</span></div>
+            <div style="padding:24px;">
+                <form method="POST" action="{{ url_for('update_report', report_id=report.id) }}">
+                    <div class="form-group">
+                        <label class="form-label">Status</label>
+                        <select name="status" class="form-select">
+                            <option value="pending" {{ 'selected' if report.status=='pending' }}>Pending</option>
+                            <option value="in_progress" {{ 'selected' if report.status=='in_progress' }}>In Progress</option>
+                            <option value="resolved" {{ 'selected' if report.status=='resolved' }}>Resolved</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label class="form-label">Admin Notes</label>
+                        <textarea name="admin_notes" class="form-textarea" style="min-height:80px;">{{ report.admin_notes or '' }}</textarea>
+                    </div>
+                    <button type="submit" class="btn btn--dark btn--full">Update Report</button>
+                </form>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="card__header"><span class="card__title">Upload Resolution Photo</span></div>
+            <div style="padding:24px;">
+                <form method="POST" action="{{ url_for('upload_resolution', report_id=report.id) }}" enctype="multipart/form-data">
+                    <div class="form-group">
+                        <label class="form-label">Photo</label>
+                        <input type="file" name="image" class="form-input" accept="image/*" required>
+                    </div>
+                    <button type="submit" class="btn btn--dark btn--full">Upload Photo</button>
+                </form>
+            </div>
+        </div>
+        {% else %}
+        <div class="card">
+            <div class="card__header"><span class="card__title">Status Timeline</span></div>
+            <div style="padding:24px;">
+                {% set statuses=['pending','in_progress','resolved'] %}
+                {% set current_idx=statuses.index(report.status) %}
+                <div style="display:flex;flex-direction:column;gap:16px;">
+                    {% for i,s in [(0,'pending'),(1,'in_progress'),(2,'resolved')] %}
+                    <div style="display:flex;align-items:center;gap:12px;">
+                        <div style="width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:.75rem;font-weight:700;flex-shrink:0;
+                            background:{{ 'var(--green-dark)' if i<=current_idx else 'var(--tan)' }};
+                            color:{{ 'var(--cream)' if i<=current_idx else 'var(--text-light)' }};">{{ i+1 }}</div>
+                        <span style="font-weight:{{ '700' if i==current_idx else '400' }};color:{{ 'var(--green-dark)' if i==current_idx else 'var(--text-light)' }};">
+                            {{ s | replace('_',' ') | title }}
+                        </span>
+                    </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

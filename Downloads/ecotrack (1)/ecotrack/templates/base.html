@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}EcoTrack{% endblock %} — Community Waste Reporting</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link href="https://fonts.googleapis.com/css2?family=DM+Serif+Display:ital@0;1&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    {% block extra_head %}{% endblock %}
+</head>
+<body>
+{% with messages = get_flashed_messages(with_categories=true) %}
+{% if messages %}
+<div class="flash-container">
+    {% for category, message in messages %}
+    <div class="flash flash--{{ category }}">
+        <span>{{ message }}</span>
+        <button onclick="this.parentElement.remove()">x</button>
+    </div>
+    {% endfor %}
+</div>
+{% endif %}
+{% endwith %}
+
+{% block full_content %}
+{% if session.get('user_id') %}
+<div class="sidebar" id="sidebar">
+    <div class="sidebar__brand">EcoTrack</div>
+    <div class="sidebar__user">
+        <div class="sidebar__avatar">{{ session.get('name','U')[0].upper() }}</div>
+        <div>
+            <div class="sidebar__username">{{ session.get('name') }}</div>
+            <div class="sidebar__role">{{ session.get('role') | title }}</div>
+        </div>
+    </div>
+    <nav class="sidebar__nav">
+        {% if session.get('role') == 'admin' %}
+        <p class="sidebar__section-label">Main</p>
+        <a href="{{ url_for('admin_dashboard') }}" class="sidebar__link {% if request.endpoint=='admin_dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="{{ url_for('admin_search') }}" class="sidebar__link {% if request.endpoint=='admin_search' %}active{% endif %}">Search Reports</a>
+        <a href="{{ url_for('admin_users') }}" class="sidebar__link {% if request.endpoint=='admin_users' %}active{% endif %}">Manage Users</a>
+        <p class="sidebar__section-label">Community</p>
+        <a href="{{ url_for('admin_activities') }}" class="sidebar__link {% if request.endpoint=='admin_activities' %}active{% endif %}">Activities Feed</a>
+        <a href="{{ url_for('admin_announcements') }}" class="sidebar__link {% if request.endpoint=='admin_announcements' %}active{% endif %}">Announcements</a>
+        <p class="sidebar__section-label">Reports</p>
+        <a href="{{ url_for('generate_report') }}" class="sidebar__link {% if request.endpoint=='generate_report' %}active{% endif %}">Generate Report</a>
+        <a href="{{ url_for('admin_activity') }}" class="sidebar__link {% if request.endpoint=='admin_activity' %}active{% endif %}">Activity Log</a>
+        <p class="sidebar__section-label">Account</p>
+        <a href="{{ url_for('profile') }}" class="sidebar__link {% if request.endpoint=='profile' %}active{% endif %}">My Profile</a>
+        {% else %}
+        <p class="sidebar__section-label">Main</p>
+        <a href="{{ url_for('user_dashboard') }}" class="sidebar__link {% if request.endpoint=='user_dashboard' %}active{% endif %}">Dashboard</a>
+        <a href="{{ url_for('new_report') }}" class="sidebar__link {% if request.endpoint=='new_report' %}active{% endif %}">New Report</a>
+        <p class="sidebar__section-label">Community</p>
+        <a href="{{ url_for('feed') }}" class="sidebar__link {% if request.endpoint=='feed' %}active{% endif %}">Activity Feed</a>
+        <p class="sidebar__section-label">Insights</p>
+        <a href="{{ url_for('my_stats') }}" class="sidebar__link {% if request.endpoint=='my_stats' %}active{% endif %}">My Statistics</a>
+        <p class="sidebar__section-label">Account</p>
+        <a href="{{ url_for('profile') }}" class="sidebar__link {% if request.endpoint=='profile' %}active{% endif %}">My Profile</a>
+        {% endif %}
+    </nav>
+    <div class="sidebar__footer">
+        <a href="{{ url_for('logout') }}" class="sidebar__logout">Logout</a>
+    </div>
+</div>
+
+<div class="topbar">
+    <button class="topbar__toggle" onclick="document.getElementById('sidebar').classList.toggle('open')">Menu</button>
+    <div class="topbar__title">{% block page_title %}{% endblock %}</div>
+    <div class="topbar__right">
+        <a href="{{ url_for('profile') }}" class="topbar__avatar">{{ session.get('name','U')[0].upper() }}</a>
+    </div>
+</div>
+
+<div class="layout">
+    <main class="main-content">
+        {% block content %}{% endblock %}
+    </main>
+</div>
+
+{% else %}
+<nav class="navbar">
+    <a href="{{ url_for('index') }}" class="navbar__logo">EcoTrack</a>
+    <div class="navbar__links">
+        <a href="{{ url_for('login') }}" class="nav-link">Login</a>
+        <a href="{{ url_for('register') }}" class="nav-link nav-link--cta">Register</a>
+    </div>
+</nav>
+<main class="main-content--guest">{% block content_guest %}{% endblock %}</main>
+<footer class="footer">
+    <p>EcoTrack &copy; 2024 &middot; Community Waste Reporting &middot; SDG 11 &middot; SDG 12 &middot; SDG 13</p>
+</footer>
+{% endif %}
+{% endblock %}
+
+<script src="{{ url_for('static', filename='js/main.js') }}"></script>
+{% block extra_scripts %}{% endblock %}
+</body>
+</html>
